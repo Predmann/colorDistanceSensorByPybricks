@@ -1,42 +1,40 @@
-from pybricks.pupdevices import ColorDistanceSensor, DCMotor # ColorSensor instead of ColorDistanceSensor if using Mindstorms sensor
-from pybricks.parameters import Color, Port 
+from pybricks.pupdevices import ColorDistanceSensor, DCMotor
+from pybricks.parameters import Color, Port
 from pybricks.tools import wait
 
-motor = DCMotor(Port.A) # Motor connected to port A
-sensor = ColorDistanceSensor(Port.B) # ColorSensor instead of ColorDistanceSensor if using Mindstorms sensor
+motor = DCMotor(Port.A)  # Motor connected to port A
+sensor = ColorDistanceSensor(Port.B)  # Sensor connected to port B
 
 # Constants
-LIGHT = 57
-DARK = 16
-station_stop_time_ms = 5000
-eol_stop_time_ms = 1500
-forward_speed = 50
-check_color_interval_ms = 20
+station_stop_time_ms = 10000  # stop at station for 10 seconds
+forward_speed = 50            # normal speed
+slow_speed = 20               # reduced speed
+check_color_interval_ms = 50  # how often to check (ms)
 
-# Function to check for a specific color
-def check_for_color(color):
-    while sensor.color() != color:
-        wait(check_color_interval_ms)
+last_color = None  # store previously detected color
 
-# Main loop
 while True:
+    kolor = sensor.color()
 
-    # Sensor checks for green, will do a pause and move forward
-    print("...looking for green...")
-    check_for_color(Color.GREEN)
-    Kolor = str(sensor.color())
-    print(Kolor+" detected, at station, stopping and continuing...")
-    motor.brake()
-    for i in range(1000, 10000):
-    wait(i)
-    motor.dc(forward_speed)
+    if kolor != last_color:  # react only to a change in color
+        last_color = kolor
 
-    # Sensor checks for blue, will do a pause and move back
-    print("...looking for blue...")
-    check_for_color(Color.BLUE)
-    Kolor = str(sensor.color())
-    print(Kolor+" detected, at end of line, stopping and going back to station...")
-    motor.brake()
-    for j in range(1000, 10000):
-    wait(j)
-    motor.dc(forward_speed)
+        if kolor == Color.GREEN:
+            print("Green detected → driving forward.")
+            motor.dc(forward_speed)
+
+        elif kolor == Color.RED:
+            print("Red detected → stopping for 10 seconds.")
+            motor.brake()
+            wait(station_stop_time_ms)
+            print("Resuming forward movement...")
+            motor.dc(forward_speed)
+
+        elif kolor == Color.BLUE:
+            print("Blue detected → slowing down.")
+            motor.dc(slow_speed)
+
+        else:
+            print("No special color → continuing current action.")
+
+    wait(check_color_interval_ms)
